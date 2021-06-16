@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-alpine
+  labels:
+    name: nginx-alpine
+spec:
+  selector:
+    matchLabels:
+      name: nginx-alpine
+  template:
+    metadata:
+      name: nginx-alpine
+      labels:
+        name: nginx-alpine
+    spec:
+      containers:
+        - name: nginx-alpine
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 200m
+              memory: 100Mi
+            limits:
+              cpu: 200m
+              memory: 100Mi
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-alpine-service
+spec:
+  type: NodePort
+  selector:
+    name: nginx-alpine
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30000
+
+---
+
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: hpa-nginx
+spec:
+  minReplicas: 1
+  maxReplicas: 4
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nginx-alpine
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 40
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 70

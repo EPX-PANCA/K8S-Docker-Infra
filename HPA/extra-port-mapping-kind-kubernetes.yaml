@@ -1,0 +1,11 @@
+apiVersion: kind.x-k8s.io/v1alpha4
+kind: Cluster
+nodes:
+- role: control-plane
+#agar nodeport dapat di akses, karena jika kind ngga pake ini ga bisa, kalo yg microk8s atau kubeadm udh bisa langsung
+  extraPortMappings:
+  - containerPort: 30000
+    hostPort: 30000
+    listenAddress: "0.0.0.0" # Optional, defaults to "0.0.0.0"
+    protocol: tcp # Optional, defaults to tcp
+- role: worker
