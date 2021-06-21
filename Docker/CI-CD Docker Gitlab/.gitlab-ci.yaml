@@ -6,7 +6,7 @@ stages:
 variables:
   DOCKER_TLS_CERTDIR: ""
   DOCKER_REPO: $REGISTRY_REPO
-  CONTAINER_NAME: "TEST"
+  CONTAINER_NAME: "CONTAINER-TEST"
 
 build_push:
   stage: build_push
@@ -28,8 +28,9 @@ build_push:
 deploy_development:
   stage: deploy_development
   script:
-    - sshpass -p $PASS_DEVEL ssh -o StrictHostKeyChecking=no $SERVER_DEVEL "echo "$PASS_DEVEL" | sudo -S docker stop $CONTAINER_NAME || true && docker rm $CONTAINER_NAME || true
-    - sshpass -p $PASS_DEVEL ssh -o StrictHostKeyChecking=no $SERVER_DEVEL "echo "$PASS_DEVEL" | sudo -S docker run -d --name $CONTAINER_NAME -p $PORT:$PORT_INTERNAL $DOCKER_REPO:$CI_COMMIT_SHORT_SHA
+    - sshpass -p $PASS_DEVEL ssh -o StrictHostKeyChecking=no $SERVER_DEVEL "echo "$PASS_DEVEL" | sudo -S docker stop $CONTAINER_NAME || true && docker rm $CONTAINER_NAME || true"
+    - sshpass -p $PASS_DEVEL ssh -o StrictHostKeyChecking=no $SERVER_DEVEL "echo "$PASS_DEVEL" | sudo -S docker run -d --name $CONTAINER_NAME -p $PORT:$PORT_INTERNAL $DOCKER_REPO:$CI_COMMIT_SHORT_SHA"
+    - sshpass -p $PASS_DEVEL ssh -o StrictHostKeyChecking=no $SERVER_DEVEL "echo "$PASS_DEVEL" | sudo -S docker image prune -a -f"
     - echo "Service $CONTAINER_NAME has been deployed to Development"
   only:
     - development
@@ -38,8 +39,9 @@ deploy_production:
   stage: deploy_production
   when: manual
   script:
-    - sshpass -p $PASS_DEVEL ssh -o StrictHostKeyChecking=no $SERVER_PROD "echo "$PASS_DEVEL" | sudo -S docker stop $CONTAINER_NAME || true && docker rm $CONTAINER_NAME || true
-    - sshpass -p $PASS_DEVEL ssh -o StrictHostKeyChecking=no $SERVER_PROD "echo "$PASS_DEVEL" | sudo -S docker run -d --name $CONTAINER_NAME -p $PORT:$PORT_INTERNAL $DOCKER_REPO:$CI_COMMIT_TAG
+    - sshpass -p $PASS_PROD ssh -o StrictHostKeyChecking=no $SERVER_PROD "echo "$PASS_PROD" | sudo -S docker stop $CONTAINER_NAME || true && docker rm $CONTAINER_NAME || true"
+    - sshpass -p $PASS_PROD ssh -o StrictHostKeyChecking=no $SERVER_PROD "echo "$PASS_PROD" | sudo -S docker run -d --name $CONTAINER_NAME -p $PORT:$PORT_INTERNAL $DOCKER_REPO:$CI_COMMIT_TAG"
+    - sshpass -p $PASS_PROD ssh -o StrictHostKeyChecking=no $SERVER_PROD "echo "$PASS_PROD" | sudo -S docker image prune -a -f"
     - echo "Service $CONTAINER_NAME has been deployed to Production"
   only:
     - tags
