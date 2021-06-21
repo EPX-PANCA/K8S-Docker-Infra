@@ -1,0 +1,49 @@
+stages:
+  - build_push
+  - deploy_development
+  - deploy_production
+
+variables:
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_REPO: $REGISTRY_REPO
+  CONTAINER_NAME: "TEST"
+
+build_push:
+  stage: build_push
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker login -u $REGISTRY_USERNAME -p $REGISTRY_PASSWORD
+    - echo "Building docker image"
+    - docker build -t $DOCKER_REPO:$CI_COMMIT_SHORT_SHA .
+    - echo "Pushing docker image to registry"
+    - if [ $CI_COMMIT_BRANCH = "development" ]; then docker push $DOCKER_REPO:$CI_COMMIT_SHORT_SHA ; fi
+    - if [ -n "$CI_COMMIT_TAG" ]; then docker push $DOCKER_REPO:$CI_COMMIT_TAG ; fi
+    - echo "Docker image has been successfully pushed to registry"
+  only:
+    - development
+    - tags
+
+deploy_development:
+  stage: deploy_development
+  script:
+    - sshpass -p $PASS_DEVEL ssh -o StrictHostKeyChecking=no $SERVER_DEVEL "echo "$PASS_DEVEL" | sudo -S docker stop $CONTAINER_NAME || true && docker rm $CONTAINER_NAME || true
+    - sshpass -p $PASS_DEVEL ssh -o StrictHostKeyChecking=no $SERVER_DEVEL "echo "$PASS_DEVEL" | sudo -S docker run -d --name $CONTAINER_NAME -p $PORT:$PORT_INTERNAL $DOCKER_REPO:$CI_COMMIT_SHORT_SHA
+    - echo "Service $CONTAINER_NAME has been deployed to Development"
+  only:
+    - development
+
+deploy_production:
+  stage: deploy_production
+  when: manual
+  script:
+    - sshpass -p $PASS_DEVEL ssh -o StrictHostKeyChecking=no $SERVER_PROD "echo "$PASS_DEVEL" | sudo -S docker stop $CONTAINER_NAME || true && docker rm $CONTAINER_NAME || true
+    - sshpass -p $PASS_DEVEL ssh -o StrictHostKeyChecking=no $SERVER_PROD "echo "$PASS_DEVEL" | sudo -S docker run -d --name $CONTAINER_NAME -p $PORT:$PORT_INTERNAL $DOCKER_REPO:$CI_COMMIT_TAG
+    - echo "Service $CONTAINER_NAME has been deployed to Production"
+  only:
+    - tags
+
+
+# note : 
+# SERVER_DEVEL/SERVER_PROD : name@127.0.0.1
