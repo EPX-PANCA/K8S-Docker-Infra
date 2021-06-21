@@ -3,5 +3,5 @@
 ```sh
 Note:
 - Extra pod mapping only use on Kind kubernetes Distro
-- Choose metrics server tls or non tls
+- Choose metrics server tls or non tls (minikube, kind = non tls)
 ```
