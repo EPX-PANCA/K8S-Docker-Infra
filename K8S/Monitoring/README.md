@@ -40,3 +40,13 @@ spec:
       targetPort: 3000
       nodePort: 30100
 ```
+
+http://blog.marcnuri.com/prometheus-grafana-setup-minikube/
+
+https://blog.marcnuri.com/yakc-kubernetes-dashboard/
+
+https://betterprogramming.pub/monitor-your-kubernetes-cluster-with-prometheus-and-grafana-1f7d0195e59
+
+1860
+8685
+4151
