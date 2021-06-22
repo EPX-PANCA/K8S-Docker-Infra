@@ -25,6 +25,7 @@ spec:
 ```
 
 ```sh
+#Ekspose grafana dengan nodePort
 apiVersion: v1
 kind: Service
 metadata:
